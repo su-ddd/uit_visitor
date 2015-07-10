@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the University IT Visitor Roles module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+
+function uit_visitor_roles_install() {
+
+  $roles = array('Office 365 Email User', 'Zimbra Email User', 'Google Email User');
+
+  foreach ($roles as $role) {
+    $existing_role = user_role_load_by_name($role);
+
+    if ($existing_role) {
+      continue;
+    }
+
+    $new_role = new stdClass();
+    $new_role->name = $role;
+    user_role_save($new_role);
+
+    drupal_set_message(st('Added Role @role', array('@role' => $role)));
+  }
+}

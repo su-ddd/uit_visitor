@@ -1,0 +1,85 @@
+<?php
+/**
+ * @file
+ * Assign roles to visitors based on what University IT knows about them.
+ */
+
+/**
+ * Implements hook_user_login().
+ */
+function uit_visitor_roles_user_login(&$edit, &$account) {
+
+  $authname = db_query("SELECT authname FROM {authmap} WHERE uid = :uid and module = 'webauth'", array(':uid' => $account->uid))->fetchField();
+
+  // only work on the user if it's a WebAuth user
+  if ($authname) {
+
+    // save the user's roles for now
+    $new = array('roles' => $account->roles);
+
+    $sunetid = strstr($authname, '@stanford.edu', TRUE);
+    $email_service = _uit_visitor_roles_get_email_service($sunetid);
+
+    // delete all the email-based roles
+    $role_names = array('Office 365 Email User', 'Zimbra Email User', 'Google Email User');
+
+    foreach ($role_names as $role_name) {
+      if ($role = user_role_load_by_name($role_name)) {
+        // remove the role
+        unset($new['roles'][$role->rid]);
+    }
+  }
+
+    // Add the approriate role (if one exists)
+
+    if ($email_service == 'Google') {
+      if ($new_role = user_role_load_by_name('Google Email User')) {
+        $new['roles'][$new_role->rid] = $new_role->name;
+      }
+    }
+
+    if ($email_service == 'Office 365') {
+      if ($new_role = user_role_load_by_name('Office 365 Email User')) {
+        $new['roles'][$new_role->rid] = $new_role->name;
+      }
+    }
+
+    if ($email_service == 'Zimbra') {
+      if ($new_role = user_role_load_by_name('Zimbra Email User')) {
+        $new['roles'][$new_role->rid] = $new_role->name;
+      }
+    }
+
+    user_save($account, $new);
+  }
+}
+
+/**
+ *  Use DNS to figure out the user's email service
+ */
+
+function _uit_visitor_roles_get_email_service($sunetid) {
+  $sunetid = 'foofoobarbar';
+  $pobox = $sunetid . '.pobox.stanford.edu';
+  $dns = dns_get_record($pobox);
+
+  if (!$dns) {
+    return 'Unknown';
+  }
+
+  $target = $dns[0]['target'];
+
+  if ($target == 'zm88.stanford.edu') {
+    return 'Google';
+  }
+
+  if ($target == 'o365.stanford.edu') {
+    return 'Office 365';
+  }
+
+  if (preg_match('/zm\d\d\.stanford\.edu/', $target)) {
+    return 'Zimbra';
+  }
+
+  return $target;
+}
