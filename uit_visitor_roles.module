@@ -59,7 +59,6 @@ function uit_visitor_roles_user_login(&$edit, &$account) {
  */
 
 function _uit_visitor_roles_get_email_service($sunetid) {
-  $sunetid = 'foofoobarbar';
   $pobox = $sunetid . '.pobox.stanford.edu';
   $dns = dns_get_record($pobox);
 
