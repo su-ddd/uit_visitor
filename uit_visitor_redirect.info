@@ -1,0 +1,7 @@
+name = University IT Visitor Redirect
+description = Redirect visitors depending on their role
+version = 7.x-1.0
+core = 7.x
+package = "Stanford"
+dependencies[] = webauth
+dependencies[] = uit_visitor_roles

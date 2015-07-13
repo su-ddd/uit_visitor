@@ -1,0 +1,50 @@
+<?php
+/**
+ * @file
+ * Redirect visitors depending on their roles
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function uit_visitor_redirect_menu() {
+  $items['configure-email'] = array(
+    'title' => 'Configure Email',
+	'page callback' => '_uit_visitor_redirect_configure_email',
+	'access callback' => 'user_is_logged_in',
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback for /configure-email
+ */
+function _uit_visitor_redirect_configure_email() {
+  global $user;
+
+  if (in_array('Office 365 Email User', $user->roles)) {
+    drupal_goto('https://itservices.stanford.edu/service/office365/configure');
+  }
+
+  if (in_array('Zimbra Email User', $user->roles)) {
+    drupal_goto('https://itservices.stanford.edu/service/emailcalendar/');
+  }
+
+  if (in_array('Google Email User', $user->roles)) {
+    drupal_goto('https://itservices.stanford.edu/service/googleapps/emailcalendar');
+  }
+
+  drupal_goto('https://itservices.stanford.edu/emailcalendar/config');
+}
+
+/*
+  TODO:
+  Have a table that contains menu / default location / minimum roles (authenticated user? anonymous OK?)
+  Have a second table that has menu / role / destination / weight(?)
+  hook_menu then reads all the menu from the first table, and sets up the menu item, the page callback to a function, the access to what the role is
+  the redirecting function then reacts to the URL, how? and uses the second table appropriately.
+  - how to get the URL in the function? (use page arguments, and an array of arguments with the values specifying the paths)
+  - how to handle multiple matches (a person has two roles)? Take the first that was added? Add weights?
+*/
+
